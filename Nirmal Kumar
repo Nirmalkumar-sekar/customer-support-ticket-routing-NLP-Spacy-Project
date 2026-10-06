@@ -1,0 +1,101 @@
+import spacy
+
+# STEP 1: NLP PIPELINE
+
+nlp = spacy.load("en_core_web_sm")
+
+tickets = [
+    "My payment failed.",
+    "Unable to login to my account.",
+    "Need refund for my order.",
+    "I want to buy a new product."
+]
+
+
+# STEP 2: SUPPORT CATEGORIES
+
+categories = {
+    "Billing Team": [
+        "payment",
+        "billing",
+        "charged",
+        "invoice",
+        "card",
+        "failed payment"
+    ],
+
+    "Technical Team": [
+        "login",
+        "password",
+        "error",
+        "technical",
+        "account",
+        "unable to login"
+    ],
+
+    "Refund Team": [
+        "refund",
+        "return",
+        "money back",
+        "cancel order"
+    ],
+
+    "Sales Team": [
+        "buy",
+        "purchase",
+        "product",
+        "price",
+        "sales"
+    ]
+}
+
+
+# STEP 3: PROCESS EACH TICKET
+
+for ticket in tickets:
+
+    print("\n-----------------------------")
+    print("Ticket:", ticket)
+
+    doc = nlp(ticket)
+
+    # Convert ticket to lowercase
+    ticket_text = ticket.lower()
+
+    scores = {}
+
+
+    # STEP 4: KEYWORD MATCHING
+
+    for category, keywords in categories.items():
+
+        matched_words = []
+
+        for keyword in keywords:
+
+            if keyword.lower() in ticket_text:
+                matched_words.append(keyword)
+
+        scores[category] = len(matched_words)
+
+
+    # STEP 5: ENTITY RECOGNITION
+
+    entities = []
+
+    for ent in doc.ents:
+        entities.append((ent.text, ent.label_))
+
+
+    # STEP 6: FIND BEST CATEGORY
+
+    best_category = max(scores, key=scores.get)
+
+    # If no keyword is found
+    if scores[best_category] == 0:
+        best_category = "Sales Team"
+
+
+    print("Scores:", scores)
+    print("Entities:", entities)
+    print("Routed To:", best_category)
